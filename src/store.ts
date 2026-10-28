@@ -1,6 +1,7 @@
 import { Permission, Query, Role } from 'appwrite';
 import type { TablesDB, Models } from 'appwrite';
 import type { Item, TrackerStore } from './types';
+import { validDay } from './planning.ts';
 type Row = Models.Row & { payload:string; revision:number };
 const conflict = () => new Error('This item changed on another device. Your draft is still here. Close and reopen it to review the latest version.');
 export function validateItem(item:Item):Item {
@@ -9,7 +10,9 @@ export function validateItem(item:Item):Item {
  if(item.notes.length>20000)throw new Error('Keep notes under 20,000 characters.');
  for(const link of [item.pr,item.jira]) { if(!link)continue; let url:URL;try{url=new URL(link)}catch{throw new Error('Use a complete https or http link.')}if(!['https:','http:'].includes(url.protocol)||link.length>2000)throw new Error('Use a complete https or http link.'); }
  if(item.meeting&&!Number.isFinite(Date.parse(item.meeting)))throw new Error('Choose a valid meeting time.');
- if(item.due&&!/^\d{4}-\d{2}-\d{2}$/.test(item.due))throw new Error('Choose a valid due date.');
+ if(item.due&&!validDay(item.due))throw new Error('Choose a valid due date.');
+ if(item.plannedDate&&!validDay(item.plannedDate))throw new Error('Choose a valid planning date.');
+ if(item.planOrder!==undefined&&!Number.isFinite(item.planOrder))throw new Error('Choose a valid planning order.');
  return {...item,title:item.title.trim()};
 }
 const decode=(row:Row):Item => validateItem({...JSON.parse(row.payload),id:row.$id,revision:row.revision,updatedAt:row.$updatedAt});
@@ -31,7 +34,7 @@ export function createStore(db:TablesDB,userId:string,databaseId='steady',tableI
      return decode(row);
     }catch(error){
      // A network retry after a successful creation must not duplicate the task.
-     if((error as {code?:number}).code===409){const existing=decode(await db.getRow<Row>({...scope,rowId:item.id}));if(existing.title===next.title&&existing.notes===next.notes&&existing.pr===next.pr&&existing.jira===next.jira&&existing.meeting===next.meeting&&existing.due===next.due&&existing.space===next.space&&existing.kind===next.kind&&existing.today===next.today&&existing.done===next.done)return existing;}
+     if((error as {code?:number}).code===409){const existing=decode(await db.getRow<Row>({...scope,rowId:item.id}));if(existing.title===next.title&&existing.notes===next.notes&&existing.pr===next.pr&&existing.jira===next.jira&&existing.meeting===next.meeting&&existing.due===next.due&&existing.space===next.space&&existing.kind===next.kind&&existing.today===next.today&&existing.done===next.done&&existing.plannedDate===next.plannedDate&&existing.planOrder===next.planOrder&&existing.workspace===next.workspace)return existing;}
      throw error;
     }
    }

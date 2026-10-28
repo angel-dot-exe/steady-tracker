@@ -1,0 +1,10 @@
+import { createHash } from 'node:crypto';
+export const recordId=(owner,provider,id)=>createHash('sha256').update(`${owner}:${provider}:${id}`).digest('hex').slice(0,32);
+export const issueKeys=pr=>[...new Set(`${pr.title||''} ${pr.body||''} ${pr.head?.ref||''}`.match(/\bAMB-\d+\b/gi)||[])].map(key=>key.toUpperCase());
+export const freshItem=(id,kind)=>({id,space:'work',workspace:'ambient',kind,title:'',notes:'',pr:'',jira:'',meeting:'',due:'',today:false,done:false,revision:0,updatedAt:''});
+export function issueItem(owner,issue){return {...freshItem(recordId(owner,'jira',issue.id),'jira'),title:`${issue.key} · ${issue.fields.summary}`.slice(0,200),jira:`https://ambsec.atlassian.net/browse/${issue.key}`,due:issue.fields.duedate||'',source:'jira',sourceId:String(issue.id),sourceStatus:issue.fields.status?.name||'',sourceAssigned:true,sourceDone:issue.fields.status?.statusCategory?.key==='done'};}
+export function prItem(owner,pr,keys){const match=issueKeys(pr).find(key=>keys.has(key));return {...freshItem(recordId(owner,'github',pr.id),'pr'),title:`${pr.base.repo.name} #${pr.number} · ${pr.title}`.slice(0,200),pr:pr.html_url,jira:match?`https://ambsec.atlassian.net/browse/${match}`:'',source:'github',sourceId:String(pr.id),sourceStatus:pr.merged_at?'Merged':pr.draft?'Draft':pr.state==='closed'?'Closed':'Open',sourceDone:pr.state==='closed'};}
+// Remote refreshes must never move a user's plan, change notes, or undo manual linking.
+export function mergeImport(current,incoming){if(!current)return {...incoming,done:incoming.sourceDone};return {...current,title:incoming.title,sourceStatus:incoming.sourceStatus,sourceDone:incoming.sourceDone,sourceAssigned:incoming.sourceAssigned,...(incoming.source==='jira'?{due:incoming.due}:{})};}
+
+export function sameRemoteLink(a,b){try{const x=new URL(a),y=new URL(b);const key=u=>u.pathname.match(/\/browse\/(AMB-\d+)/i)?.[1].toUpperCase();return x.origin===y.origin&&((key(x)&&key(x)===key(y))||x.pathname.replace(/\/+$/,'')===y.pathname.replace(/\/+$/,''));}catch{return false}}

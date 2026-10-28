@@ -6,6 +6,7 @@ import { connect, loadConfig, saveConfig, validConfig } from './backend';
 import type { BackendConfig } from './backend';
 import { createStore } from './store';
 import Tracker from './tracker';
+import { integrationService } from './integrations';
 function Frame({children}:{children:React.ReactNode}){return <div className="auth-shell"><section className="auth-card"><a className="brand" href={import.meta.env.BASE_URL}><span className="brand-mark">⌒</span>steady<span className="brand-dot">.</span></a>{children}<p className="auth-foot"><Leaf size={15}/> A little more headspace, wherever you are.</p></section></div>}
 export default function App(){
  const [config,setConfig]=useState<BackendConfig|null>(()=>loadConfig());
@@ -18,11 +19,12 @@ function Setup({onReady}:{onReady:(c:BackendConfig)=>void}){
 }
 function Connected({config}:{config:BackendConfig}){
  const backend=useMemo(()=>connect(config),[config]);
+ const integrations=useMemo(()=>integrationService(backend.client),[backend]);
  const [user,setUser]=useState<Models.User<Models.Preferences>|null>(null),[loading,setLoading]=useState(true),[authError,setAuthError]=useState('');
  useEffect(()=>{let cancelled=false;backend.account.get().then(u=>{if(!cancelled)setUser(u)}).catch(err=>{if(!cancelled&&err.code!==401)setAuthError(err.message)}).finally(()=>{if(!cancelled)setLoading(false)});return()=>{cancelled=true}},[backend]);
  const store=useMemo(()=>user?createStore(backend.db,user.$id):null,[backend,user]);
  if(loading)return <Frame><p className="auth-description" role="status">Opening your space…</p></Frame>;
- if(user&&store)return <Tracker key={user.$id} userKey={`${config.project}-${user.$id}`} store={store} onSignOut={async()=>{await backend.account.deleteSession({sessionId:'current'});setUser(null)}}/>;
+ if(user&&store)return <Tracker integrations={integrations} key={user.$id} userKey={`${config.project}-${user.$id}`} store={store} onSignOut={async()=>{await backend.account.deleteSession({sessionId:'current'});setUser(null)}}/>;
  return <SignIn account={backend.account} initialError={authError} onSignedIn={setUser}/>;
 }
 function SignIn({account,initialError,onSignedIn}:{account:ReturnType<typeof connect>['account'];initialError:string;onSignedIn:(u:Models.User<Models.Preferences>)=>void}){

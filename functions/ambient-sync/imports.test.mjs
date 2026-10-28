@@ -1,0 +1,9 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { recordId, issueKeys, issueItem, prItem, mergeImport, sameRemoteLink } from './imports.mjs';
+const issue={id:'1',key:'AMB-42',fields:{summary:'Example',duedate:'2026-11-10',status:{name:'In progress',statusCategory:{key:'indeterminate'}}}};
+test('imports have stable per-user ids and belong to Ambient',()=>{assert.notEqual(recordId('a','jira','1'),recordId('b','jira','1'));assert.equal(issueItem('a',issue).workspace,'ambient');assert.equal(issueItem('a',issue).id,issueItem('a',issue).id)});
+test('PR titles, descriptions, and branches can identify assigned tickets',()=>{const pr={id:2,number:3,title:'Fix amb-42',body:'Related AMB-43',head:{ref:'feature/AMB-44'},base:{repo:{name:'demo'}},html_url:'https://github.com/ambientdev/demo/pull/3',state:'open'};assert.deepEqual(issueKeys(pr),['AMB-42','AMB-43','AMB-44']);assert.equal(prItem('a',pr,new Set(['AMB-43'])).jira,'https://ambsec.atlassian.net/browse/AMB-43')});
+test('refresh preserves planning, notes, manual completion and manual relationships',()=>{const incoming=issueItem('a',issue);const current={...incoming,plannedDate:'2026-11-02',planOrder:99,notes:'My next step',done:true,jira:'https://ambsec.atlassian.net/browse/AMB-42'};const merged=mergeImport(current,{...incoming,sourceStatus:'Done',sourceDone:true,due:'2026-12-01'});assert.equal(merged.plannedDate,current.plannedDate);assert.equal(merged.planOrder,99);assert.equal(merged.notes,current.notes);assert.equal(merged.done,true);assert.equal(merged.due,'2026-12-01')});
+
+test('manual Jira links with the /jira/browse route are reused on import',()=>{assert.equal(sameRemoteLink('https://ambsec.atlassian.net/jira/browse/AMB-2754?from=copy','https://ambsec.atlassian.net/browse/AMB-2754'),true);assert.equal(sameRemoteLink('https://other.atlassian.net/browse/AMB-2754','https://ambsec.atlassian.net/browse/AMB-2754'),false)});

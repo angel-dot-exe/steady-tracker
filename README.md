@@ -1,6 +1,6 @@
 # Steady
 
-A calm tracker with a simple Work view: a visual board where you draw a line (or tap two dots) to link pull requests to Jira tickets. Multiple PRs can connect to the same ticket. Meetings and notes remain available, and Personal has its own space.
+A calm tracker with an Ambient workspace inside Work: Daily and Weekly planning, All tickets, All PRs, meetings, notes, and a visual board where you draw a line (or tap two dots) to link pull requests to Jira tickets. Multiple PRs can connect to the same ticket. Meetings and notes remain available, and Personal has its own space.
 
 The frontend is a static React app deployed to GitHub Pages. Authentication and private, cross-device data use [Appwrite](https://github.com/appwrite/appwrite), an open-source backend. Use Appwrite Cloud or your own HTTPS Appwrite server with TablesDB transaction support.
 
@@ -40,6 +40,9 @@ After provisioning, test with two separate accounts. An item created by the firs
 
 ## Behavior
 
+- Work opens to Ambient → Daily. Weekly shows Monday–Sunday with date navigation, an unscheduled list, drag-to-day and accessible date controls. Planning dates are independent from deadlines. Existing work items belong to Ambient; Personal stays separate.
+- **GitHub/Jira import status:** a free hourly connection service is prepared in `functions/ambient-sync`, but it is not deployed or authorized yet. The Connections screen shows this explicitly. See [setup](functions/ambient-sync/SETUP.md). No paid plan or billing setup is authorized.
+
 - Add PRs and Jira tickets on the same board. Drag a PR connector to a Jira card, or tap the PR dot then the Jira dot. Escape or Cancel clears a pending connection. Unlink removes only the relationship. Existing Jira links appear on the board automatically.
 
 - Saved items refresh every 10 seconds while the page is visible, and when returning to the page or reconnecting.
@@ -48,7 +51,7 @@ After provisioning, test with two separate accounts. An item created by the firs
 - Offline saves report failure. An open form is preserved in this browser's local storage until saved or closed; it is not a background offline upload queue.
 - The optional Export button downloads your records as JSON. Keep exports as backups.
 - Existing data on the original private Sites deployment is not automatically migrated to Appwrite.
-- PRs and Jira tickets are manually entered links; the app does not connect to your GitHub or Jira account.
+- Manual PR/Jira links work now. Automatic imports require completing the account connection setup.
 - Password recovery is not yet implemented in the UI. The project administrator can manage users through the Appwrite console.
 
 ## Development

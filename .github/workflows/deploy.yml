@@ -19,9 +19,12 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm test
+      - run: npm ci --prefix functions/ambient-sync
+      - run: npm test --prefix functions/ambient-sync
       - run: npm run build
         env:
           VITE_APPWRITE_ENDPOINT: ${{ vars.APPWRITE_ENDPOINT }}
+          VITE_SYNC_FUNCTION_ID: ${{ vars.SYNC_FUNCTION_ID }}
           VITE_APPWRITE_PROJECT_ID: ${{ vars.APPWRITE_PROJECT_ID }}
       - uses: actions/upload-pages-artifact@v4
         with:

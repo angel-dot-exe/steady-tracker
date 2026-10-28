@@ -1,0 +1,1 @@
+{"name":"steady-ambient-sync","private":true,"type":"module","scripts":{"test":"node --test *.test.mjs"},"dependencies":{"node-appwrite":"31.1.0"}}
