@@ -1,10 +1,10 @@
 # Steady
 
-A calm personal tracker with Work and Personal spaces, PR and Jira links, meetings, important notes, three priorities, and a focus timer.
+A calm tracker with a simple Work view: a visual board where you draw a line (or tap two dots) to link pull requests to Jira tickets. Multiple PRs can connect to the same ticket. Meetings and notes remain available, and Personal has its own space.
 
 The frontend is a static React app deployed to GitHub Pages. Authentication and private, cross-device data use [Appwrite](https://github.com/appwrite/appwrite), an open-source backend. Use Appwrite Cloud or your own HTTPS Appwrite server with TablesDB transaction support.
 
-**Deployment status:** The frontend works independently of provisioning, but sign-in and sync require the backend setup below. Without configuration, the page shows connection instructions; it does not pretend to save or sync data.
+**Deployment status:** GitHub Pages is connected to the Appwrite Cloud Free project. The `steady` database and `items` table are provisioned with row security enabled and create-only access for authenticated users. Create a tracker account on the site and use the same account on each device. The setup below documents how to reproduce the configuration.
 
 ## Backend setup
 
@@ -17,7 +17,7 @@ The frontend is a static React app deployed to GitHub Pages. Authentication and 
 
    | Key | Type | Settings |
    | --- | --- | --- |
-   | `payload` | String | Size 65535, required |
+   | `payload` | Mediumtext | Required (or a legacy String column large enough for 65535 characters) |
    | `revision` | Integer | Required, minimum 1 |
 
 7. Copy the API endpoint and project ID from project settings. They are public identifiers, not secrets. Supply them in the connection screen on each device, or configure the GitHub repository variables below so every device uses the same backend automatically.
@@ -39,6 +39,8 @@ Then run **Actions → Deploy Steady to GitHub Pages → Run workflow**. The bui
 After provisioning, test with two separate accounts. An item created by the first must be invisible to the second. Then sign in to the first account on a second device; saved items should appear on refresh or within 10 seconds while the tab is visible. Check updates, completion, and stale-edit rejection. These live checks require an actual Appwrite project and have not been performed merely by running the unit tests.
 
 ## Behavior
+
+- Add PRs and Jira tickets on the same board. Drag a PR connector to a Jira card, or tap the PR dot then the Jira dot. Escape or Cancel clears a pending connection. Unlink removes only the relationship. Existing Jira links appear on the board automatically.
 
 - Saved items refresh every 10 seconds while the page is visible, and when returning to the page or reconnecting.
 - New records have owner-only read, update, and delete permissions. Database authorization is enforced by Appwrite, not by hiding UI elements.

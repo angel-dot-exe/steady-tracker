@@ -38,3 +38,15 @@ test('rejects unsafe links and invalid dates before writing',()=>{
  assert.throws(()=>validateItem({...item,meeting:'not a date'}),/meeting/);
  assert.throws(()=>validateItem({...item,notes:'x'.repeat(20001)}),/20,000/);
 });
+test('linking and unlinking a PR preserve its content and other PR relationships',async()=>{
+ const jira='https://example.atlassian.net/browse/APP-42';
+ const rows=new Map(['pr-1','pr-2'].map(id=>[id,{...item,id,kind:'pr',jira:''}]));
+ const db={createTransaction:async()=>({$id:'tx'}),getRow:async p=>row(rows.get(p.rowId)),updateRow:async p=>{const data=JSON.parse(p.data.payload);rows.set(p.rowId,data);return {$id:p.rowId,$updatedAt:item.updatedAt,...p.data}},updateTransaction:async()=>{}};
+ const store=createStore(db,'owner');
+ const first=await store.save(rows.get('pr-1'),{jira});
+ await store.save(rows.get('pr-2'),{jira});
+ assert.equal(rows.get('pr-1').jira,jira);assert.equal(rows.get('pr-2').jira,jira);
+ await store.save(first,{jira:''});
+ assert.equal(rows.get('pr-1').jira,'');assert.equal(rows.get('pr-2').jira,jira);
+ assert.equal(rows.get('pr-1').pr,item.pr);assert.equal(rows.get('pr-1').notes,item.notes);
+});
