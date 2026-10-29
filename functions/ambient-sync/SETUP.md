@@ -1,6 +1,6 @@
 # Ambient connections — free deployment
 
-Status: implementation prepared; not deployed or authorized yet. GitHub Pages is already live. No subscription, payment method, cron schedule, or paid add-on is required for this design.
+Status (October 29, 2026): `ambient-sync` deployed successfully (deployment `6ae33bdc2c16eae11644`). Private `connections` table exists with required Mediumtext payload, row security enabled and no client permissions. Function execute access is limited to the tracker owner, with `rows.read` and `rows.write` dynamic scopes, logging disabled and the free 0.5 CPU / 512 MB runtime. Encryption and owner variables are saved as secrets. Anonymous execution was rejected with HTTP 401; a short-lived owner JWT received HTTP 200 from the status action. Jira/GitHub credentials and provider authorization are still pending; interval remains 0 until connections are tested. GitHub Pages is already live. No subscription, payment method, cron schedule, or paid add-on is required for this design.
 
 ## One Appwrite Function
 
@@ -17,13 +17,15 @@ Use the existing Free project `6ae1f281001e1b52c48c` and database `steady`.
 
 ## Jira OAuth registration
 
-The resource-level **Steady Ambient Tracker** OAuth registration was created with user-approved terms on October 29, 2026. Existing app ID: `05435097-544a-42f1-af72-277a6f6b1b84`. Continue configuring this app; do not create a duplicate. Callback/scopes and account authorization remain pending. The console settings pages were blank during setup. Configure:
+The resource-level **Steady Ambient Tracker** OAuth registration was created with user-approved terms on October 29, 2026. Existing app ID: `05435097-544a-42f1-af72-277a6f6b1b84`. Continue configuring this app; do not create a duplicate. Callback saved and visually verified on October 29, 2026. User confirmed saving the two requested read scopes; console shows Scopes Used: 2. Client credentials and actual account authorization remain pending; the backend is deployed. Desktop automation changes the URL but often shows stale or blank content; user has been completing console steps manually. Configuration:
 
 - Callback: `https://angel-dot-exe.github.io/steady-tracker/?integration=jira`
 - Jira API scopes: `read:jira-work`, `read:jira-user`.
 - Authorization requests also use `offline_access` to receive rotating refresh tokens.
 - Authorize only `https://ambsec.atlassian.net`.
 - No Jira write or admin scopes. Initial query: `project = AMB AND assignee = currentUser()`.
+
+For the existing project, run `python3 scripts/configure-jira.py` in a local terminal to save the Jira Client ID and Secret directly into secret function variables. The helper uses the official authenticated Appwrite CLI, hides secret input, and never writes credentials into this repository. After saving, verify runtime configuration, authorize Jira through Steady, test imports, then enable the free 60-minute interval.
 
 ## GitHub App registration
 
