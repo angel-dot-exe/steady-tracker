@@ -17,7 +17,7 @@ Use the existing Free project `6ae1f281001e1b52c48c` and database `steady`.
 
 ## Jira OAuth registration
 
-Register **Steady Ambient Tracker** as one OAuth 2.0 integration in the Atlassian developer console. Account owner must accept the developer terms themselves. Configure:
+The resource-level **Steady Ambient Tracker** OAuth registration was created with user-approved terms on October 29, 2026. Existing app ID: `05435097-544a-42f1-af72-277a6f6b1b84`. Continue configuring this app; do not create a duplicate. Callback/scopes and account authorization remain pending. The console settings pages were blank during setup. Configure:
 
 - Callback: `https://angel-dot-exe.github.io/steady-tracker/?integration=jira`
 - Jira API scopes: `read:jira-work`, `read:jira-user`.

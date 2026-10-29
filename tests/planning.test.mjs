@@ -17,3 +17,12 @@ test('moves a planned card earlier and later without duplicating records',()=>{
  assert.equal(reorderPatch([item,b,c],item,-1),null);
 });
 test('existing work belongs to Ambient; Personal remains separate',()=>{assert.equal(isAmbient(item),true);assert.equal(isAmbient({...item,space:'personal'}),false);assert.equal(isAmbient({...item,workspace:'other'}),false)});
+
+test('merged calendars include dates from both spaces without changing source records',async()=>{
+ const {calendarDay}=await import('../src/planning.ts');
+ const personal={...item,id:'personal',space:'personal',plannedDate:'',due:'2026-11-03'};
+ const meeting={...item,id:'meeting',space:'personal',kind:'meeting',plannedDate:'',due:'',meeting:'2026-11-03T12:00:00'};
+ assert.equal(calendarDay(personal),'2026-11-03');assert.equal(calendarDay(meeting),'2026-11-03');assert.equal(calendarDay(item),'2026-10-28');
+ const moved={...personal,...planPatch([item,personal,meeting],personal,'2026-11-04',calendarDay)};
+ assert.equal(moved.space,'personal');assert.equal(moved.id,personal.id);assert.equal(moved.due,'2026-11-03');assert.equal(calendarDay(moved),'2026-11-04');assert.equal(calendarDay({...moved,plannedDate:''}),'2026-11-03');
+});
